@@ -9,30 +9,38 @@ import os
 from os import listdir
 from os.path import isfile, join
 import random
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import requests
+import time
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 message_list=[
-    'the greater <br> the challenge <br> the bigger the success',
-    'the greater <br> the challenge <br> the bigger the success<br> the bigger the success<br> the bigger the success<br> the bigger the success<br> the bigger the success'
-   
+    "Life is waiting for you <br>Give your best Shot."
 ]
 
 is_author=True
 author_name="-Sandeep Maheshwari"
-is_author_pic=True
+is_author_pic=False
 author_pic="https://i.pinimg.com/originals/d2/cd/59/d2cd59ec667f39bfa65a1fcaf90434ac.png"
 
 #number of images
-total_samples=2
+total_samples=100
 random_sample=True
 
 #text colors
-custom_text_color=False
+custom_text_color=True
 text_color="white"
 
 #text alignment
-left__margin="10px"
-bottom__margin="300px"
+left__margin="50px"
+bottom__margin="400px"
 font__family="Merriweather"
 font__size="50px"
 is_border=True
@@ -55,11 +63,11 @@ gaussian_blur=1
 
 
 
-
 unsortedimage="D:\\Programs\\MakeImagePost\\UnSortedImage"
 imagetocropdirpath="D:\\Programs\\MakeImagePost\\ImagesToCrop"
 croppedimagedirpath="D:\\Programs\\MakeImagePost\\CropedImage"
 completedpostdirpath="D:\\Programs\\MakeImagePost\\CompletedPost"
+downloadedpostdirpath="D:\\Programs\\MakeImagePost\\DownloadedImage"
 
 path_wkthmltoimage = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe'
 config = imgkit.config(wkhtmltoimage=path_wkthmltoimage)
@@ -115,6 +123,7 @@ def makeimagecropfromfolder():
             #print(size_width-min_size,min_size,size_height)
             img_left_area = (min_width_size,min_height_size, min_width_size+1080, min_height_size+1080)
             img_left = img.crop(img_left_area)
+
             img_left = img_left.filter(ImageFilter.GaussianBlur(gaussian_blur))
             img_left.save(croppedimagedirpath+"\\"+str(counter)+".jpg")
             counter+=1
@@ -133,7 +142,11 @@ def rename_all_the_files():
 def createQuoteImg(msg_body,image_location,filename):
     onlyfiles=read_and_store_all_the_files(croppedimagedirpath)
     if(filename==False):
-        backimage=croppedimagedirpath+"\\"+random.choice(onlyfiles)
+        if(image_location.find("https") == -1):
+            backimage=croppedimagedirpath+"\\"+random.choice(onlyfiles)
+        else:
+            backimage=image_location
+        print(backimage)
     else:
         backimage=croppedimagedirpath+"\\"+filename
 
@@ -162,7 +175,7 @@ def createQuoteImg(msg_body,image_location,filename):
 
     content = dict(
         background_img_path=backimage,
-        description=msg_body.upper(),
+        description=msg_body,
         textcolor=temptextcolor,
         left_margin=left__margin,
         bottom_margin=bottom__margin,
@@ -217,7 +230,7 @@ def createQuoteImg(msg_body,image_location,filename):
             bottom:{{bottom_margin}};
             left:{{left_margin}};
             align-content: center;
-            width:100%;
+            width:90%;
             font-size:{{font_size}};
             line-height:150%;
             font-weight: bold;
@@ -292,8 +305,37 @@ def make_themes_from_message():
                     counter+=1
         
 
+def download_more_images():
+    print("--------downlaod start--------")
+    url='https://www.freepik.com/search?dates=any&format=search&orientation=square&page=2&query=background&selection=1&sort=popular'
+    driver = webdriver.Firefox(executable_path="D:\\Programs\\Python_private\\SeleniumBots\\Driver\\geckodriver.exe")
+    driver.get(url)
+    driver.maximize_window()
+    time.sleep(2)
+    page = driver.execute_script('return document.body.innerHTML')
+    soup = BeautifulSoup(''.join(page), 'html.parser')
+    # actions = ActionChains(driver)
+    # for _ in range(8):
+    #     actions.send_keys(Keys.SPACE).perform()
+    #     time.sleep(1)
+    img_all_links=soup.find_all("a",{"class":"showcase__link"})
+    for i in img_all_links:
+        try:
+            imglink=i.find("img",{"class":"loaded"}).get('data-src')
+            li=imglink.split('?')
+            counter=0
+            for i in message_list:
+                print(li[0])
+                createQuoteImg(i,li[0],False)
+                counter+=1
+        except:
+            pass
+    driver.close()
+    driver.quit()
+
 
 
 #rename_all_the_files()
-#makeimagecropfromfolder()
+makeimagecropfromfolder()
 make_themes_from_message()
+#download_more_images()
