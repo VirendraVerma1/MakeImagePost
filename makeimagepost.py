@@ -31,19 +31,19 @@ is_author_pic=False
 author_pic="https://i.pinimg.com/originals/d2/cd/59/d2cd59ec667f39bfa65a1fcaf90434ac.png"
 
 #number of images
-total_samples=100
+total_samples=2
 random_sample=True
 
 #text colors
-custom_text_color=True
+custom_text_color=False
 text_color="white"
 
 #text alignment
-left__margin="50px"
-bottom__margin="400px"
+left__margin="100px"
+bottom__margin="330px"
 font__family="Merriweather"
-font__size="50px"
-is_border=True
+font__size="40px"
+is_border=False
 border_color="black"
 
 #image filter
@@ -54,6 +54,7 @@ gaussian_blur=1
 
 
 
+current_post_id=""
 
 
 
@@ -67,6 +68,7 @@ unsortedimage="D:\\Programs\\MakeImagePost\\UnSortedImage"
 imagetocropdirpath="D:\\Programs\\MakeImagePost\\ImagesToCrop"
 croppedimagedirpath="D:\\Programs\\MakeImagePost\\CropedImage"
 completedpostdirpath="D:\\Programs\\MakeImagePost\\CompletedPost"
+author_imagepath="D:\\Programs\\MakeImagePost\\Author"
 downloadedpostdirpath="D:\\Programs\\MakeImagePost\\DownloadedImage"
 
 path_wkthmltoimage = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe'
@@ -170,7 +172,7 @@ def createQuoteImg(msg_body,image_location,filename):
 
     temp__author_pic=""
     if(is_author_pic):
-        temp__author_pic='<img src="'+author_pic+'" style="width:30%;height:30%">'
+        temp__author_pic='<img src="'+author_pic+'" style="width:25%;height:20%">'
 
 
     content = dict(
@@ -217,8 +219,8 @@ def createQuoteImg(msg_body,image_location,filename):
             position:absolute;
             bottom: -50px;
             left:100px;
-            width:100%;
-            font-size:40px;
+            width:90%;
+            font-size:30px;
             line-height:100%;
             font-style: italic;
             color:{{textcolor}};
@@ -230,7 +232,7 @@ def createQuoteImg(msg_body,image_location,filename):
             bottom:{{bottom_margin}};
             left:{{left_margin}};
             align-content: center;
-            width:90%;
+            width:80%;
             font-size:{{font_size}};
             line-height:150%;
             font-weight: bold;
@@ -289,20 +291,20 @@ def createQuoteImg(msg_body,image_location,filename):
 
 def make_themes_from_message():
     onlyfiles=read_and_store_all_the_files(croppedimagedirpath)
-    remove_all_files(completedpostdirpath)
-    counter=0
+    
+    counter=random.randint(1111111,999999999)
     n=total_samples
     while(n>0):
         n-=1
         if(random_sample):
             for i in message_list:
-                createQuoteImg(i,completedpostdirpath+"\\"+str(counter)+".jpg",False)
-                counter+=1
+                createQuoteImg(i,completedpostdirpath+"\\"+"motivational_quote_"+str(current_post_id)+"_"+str(counter)+".jpg",False)
+                counter=random.randint(1111111,999999999)
         else:
             for i in message_list:
                 for image in onlyfiles:
-                    createQuoteImg(i,completedpostdirpath+"\\"+str(counter)+".jpg",image)
-                    counter+=1
+                    createQuoteImg(i,completedpostdirpath+"\\"+"motivational_quote_"+str(current_post_id)+"_"+str(counter)+".jpg",image)
+                    counter=random.randint(1111111,999999999)
         
 
 def download_more_images():
@@ -325,6 +327,7 @@ def download_more_images():
             li=imglink.split('?')
             counter=0
             for i in message_list:
+                
                 print(li[0])
                 createQuoteImg(i,li[0],False)
                 counter+=1
@@ -333,9 +336,64 @@ def download_more_images():
     driver.close()
     driver.quit()
 
+def set_author_pic(author_namee):
+    onlyfiles=read_and_store_all_the_files(author_imagepath)
+    author_namee=author_namee.lower()
+    flag=False
+    author_namee = author_namee.replace("-"," ")
+    author_namee = author_namee.replace(" ","")
+    current_file=""
+    for i in onlyfiles:
+        current_file=i
+        i = i.replace("_"," ")
+        i = i.replace(".png"," ")
+        i = i.replace(" ","")
+        if(i == author_namee):
+            flag=True
+            break
+       
+        print(i)
+        print(author_namee)
+
+    global author_pic
+    author_pic=author_imagepath+"\\"+current_file
+    global is_author_pic
+    if(flag):
+        is_author_pic=True
+    else:
+        is_author_pic=False
+
+def getquotefromserverandpost():
+    
+    while(True):
+        url="http://kreasaard.atwebpages.com/laravel/public/getquote"
+        x = requests.get(url)
+        if(x.text=="alldone"):
+            break
+        data=x.json()
+        print(data)
+        global current_post_id
+        current_post_id=data["id"]
+        global message_list
+        message_list=[data["quote"]]
+        global author_name
+        author_name=data["author_name"]
+        set_author_pic(author_name)
+        global total_samples
+        total_samples=1
+        global font__family
+        font__family=data["font"]
+        make_themes_from_message()
+        url="http://kreasaard.atwebpages.com/laravel/public/api/updatequote"
+        myobj = {'id':data["id"]}
+        x = requests.post(url, data = myobj)
+        print(x.text)
 
 
+
+remove_all_files(completedpostdirpath)
+getquotefromserverandpost()
 #rename_all_the_files()
-makeimagecropfromfolder()
-make_themes_from_message()
+#makeimagecropfromfolder()
+#make_themes_from_message()
 #download_more_images()
