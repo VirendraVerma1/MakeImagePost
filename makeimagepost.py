@@ -31,11 +31,11 @@ is_author_pic=False
 author_pic="https://i.pinimg.com/originals/d2/cd/59/d2cd59ec667f39bfa65a1fcaf90434ac.png"
 
 #number of images
-total_samples=2
+total_samples=20
 random_sample=True
 
 #text colors
-custom_text_color=False
+custom_text_color=True
 text_color="white"
 
 #text alignment
@@ -48,6 +48,7 @@ border_color="black"
 
 #image filter
 gaussian_blur=1
+apply_dark_image=1
 
 
 
@@ -57,19 +58,13 @@ gaussian_blur=1
 current_post_id=""
 
 
-
-
-
-
-
-
-
 unsortedimage="D:\\Programs\\MakeImagePost\\UnSortedImage"
 imagetocropdirpath="D:\\Programs\\MakeImagePost\\ImagesToCrop"
 croppedimagedirpath="D:\\Programs\\MakeImagePost\\CropedImage"
 completedpostdirpath="D:\\Programs\\MakeImagePost\\CompletedPost"
 author_imagepath="D:\\Programs\\MakeImagePost\\Author"
 downloadedpostdirpath="D:\\Programs\\MakeImagePost\\DownloadedImage"
+darklayerdirpath="D:\\Programs\\MakeImagePost\\DarkLayer\\halfblack.png"
 
 path_wkthmltoimage = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe'
 config = imgkit.config(wkhtmltoimage=path_wkthmltoimage)
@@ -118,17 +113,35 @@ def makeimagecropfromfolder():
             size_height=height
             size_width=width
 
-            min_width_size=(width/2.0)-540
-            min_height_size=(height/2.0)-540
+            
+
+            range=1080
+            if(size_height>1080 and size_width>1080):
+                min_width_size=(width/2.0)-540
+                min_height_size=(height/2.0)-540
+            elif(size_height>size_width):
+                size_height=width
+                range=width
+                min_width_size=(width/2.0)-int(range/2)
+                min_height_size=(height/2.0)-int(range/2)
+            else:
+                size_width=height
+                range=height
+                min_width_size=(width/2.0)-int(range/2)
+                min_height_size=(height/2.0)-int(range/2)
 
 
             #print(size_width-min_size,min_size,size_height)
-            img_left_area = (min_width_size,min_height_size, min_width_size+1080, min_height_size+1080)
+            img_left_area = (min_width_size,min_height_size, min_width_size+range, min_height_size+range)
             img_left = img.crop(img_left_area)
 
             img_left = img_left.filter(ImageFilter.GaussianBlur(gaussian_blur))
-            img_left.save(croppedimagedirpath+"\\"+str(counter)+".jpg")
-            counter+=1
+            if(size_width >540 and size_height>540):
+                #if(darklayerdirpath):
+                    #img_dark_layer = Image.open(darklayerdirpath)
+                    #img_left.paste(img_dark_layer, (0, 0), img_dark_layer)
+                img_left.save(croppedimagedirpath+"\\"+str(counter)+".jpg")
+                counter+=1
         except:
             pass
         
@@ -177,6 +190,7 @@ def createQuoteImg(msg_body,image_location,filename):
 
     content = dict(
         background_img_path=backimage,
+        dark_img_path=darklayerdirpath,
         description=msg_body,
         textcolor=temptextcolor,
         left_margin=left__margin,
@@ -247,13 +261,28 @@ def createQuoteImg(msg_body,image_location,filename):
             right:68px;
             width:100px;
         }
+
+        .under {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: -1;
+        }
+
+        .over {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: -1;
+        }
         </style>
 
 
         </head>
         <body >
         <div class="container">
-            <img src="{{background_img_path}}" style="width:100%; {{temp_border}}">
+            <img src="{{background_img_path}}" style="width:100%; {{temp_border}} class="under"">
+            <img src="{{dark_img_path}}" style="width:100%; {{temp_border}} class="over"">
             <div class="bottom-center" align="center">
             {{temp_author_pic}}
             <p>"{{description}}"</p>
@@ -364,7 +393,7 @@ def set_author_pic(author_namee):
         is_author_pic=False
 
 def getquotefromserverandpost():
-    
+    n=6
     while(True):
         url="http://kreasaard.atwebpages.com/laravel/public/getquote"
         x = requests.get(url)
@@ -378,7 +407,7 @@ def getquotefromserverandpost():
         message_list=[data["quote"]]
         global author_name
         author_name=data["author_name"]
-        set_author_pic(author_name)
+        #set_author_pic(author_name)
         global total_samples
         total_samples=1
         global font__family
@@ -388,12 +417,16 @@ def getquotefromserverandpost():
         myobj = {'id':data["id"]}
         x = requests.post(url, data = myobj)
         print(x.text)
+        n-=1
+        if(n<0):
+            break
 
 
 
 remove_all_files(completedpostdirpath)
-getquotefromserverandpost()
+
 #rename_all_the_files()
-#makeimagecropfromfolder()
-#make_themes_from_message()
+makeimagecropfromfolder()
+#getquotefromserverandpost()
+make_themes_from_message()
 #download_more_images()

@@ -21,7 +21,7 @@
             font-size:50px;
             line-height:150%;
             font-weight: bold;
-            color:black;
+            color:white;
         }
         .bottom-right{
             position:absolute;
@@ -31,7 +31,7 @@
             font-size:30px;
             line-height:100%;
             font-style: italic;
-            color:black;
+            color:white;
         }
 
         .bottom-center{
@@ -44,8 +44,8 @@
             font-size:40px;
             line-height:150%;
             font-weight: bold;
-            color:black;
-            font-family: 'None';
+            color:white;
+            font-family: 'Merriweather';
             
         }
 
@@ -55,17 +55,32 @@
             right:68px;
             width:100px;
         }
+
+        .under {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: -1;
+        }
+
+        .over {
+        position: absolute;
+        left: 40px;
+        top: 10px;
+        z-index: -1;
+        }
         </style>
 
 
         </head>
         <body >
         <div class="container">
-            <img src="D:\Programs\MakeImagePost\CropedImage\1.jpg" style="width:100%; ">
+            <img src="D:\Programs\MakeImagePost\CropedImage\9.jpg" style="width:100%;  class="under"">
+            <img src="D:\Programs\MakeImagePost\DarkLayer\halfblack.png" style="width:100%;  class="over"">
             <div class="bottom-center" align="center">
-            <img src="D:\Programs\MakeImagePost\Author\swami_vivekananda.png" style="width:25%;height:20%">
-            <p>"Relationships are more important in life. <br>But it is important for those relationships have life in them."</p>
-            <p class="bottom-right">- Swami Vivekananda</p></div>
+            
+            <p>"Life is waiting for you <br>Give your best Shot."</p>
+            <p class="bottom-right">-Sandeep Maheshwari</p></div>
             
             
         </div>
